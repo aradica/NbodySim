@@ -5,13 +5,12 @@ from matplotlib import pyplot as plt
 class Body:
     def __init__(self, name, mass, coordinates, velocity):
 
-        #public
         self.name = name
         self.mass = mass
         self.coordinates = np.array(coordinates, dtype=float) #xyz coordinates
         self.velocity = np.array(velocity, dtype=float) #xyz velocities
 
-        #private
+        
         self.force = np.array([0.0, 0.0, 0.0], dtype=float)
 
     def __repr__(self):
@@ -66,10 +65,7 @@ class Simulator:
 
 if __name__ == "__main__":
     Earth = Body("Earth", 5.97219e24, [150000000000, 0, 0], [0, 30000, 0])
-    #Andrija = Body("Andrija", 65, [6774000, 0, 0], [0, 6000, 0])
     Sun = Body("Sun", 1.9891e30, [0, 0, 0], [0, 0, 0])
-
-    #warning: test shold be a RATIO (TIME), not N_OF_FRAMES!
 
     time = int(input("T[days]: "))
 
