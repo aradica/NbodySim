@@ -1,16 +1,16 @@
 import numpy as np
 from itertools import combinations
 from matplotlib import pyplot as plt
+import json
 
 class Body:
-    def __init__(self, name, mass, coordinates, velocity):
 
+    def __init__(self, name, mass, coordinates, velocity):
         self.name = name
         self.mass = mass
         self.coordinates = np.array(coordinates, dtype=float) #xyz coordinates
         self.velocity = np.array(velocity, dtype=float) #xyz velocities
 
-        
         self.force = np.array([0.0, 0.0, 0.0], dtype=float)
 
     def __repr__(self):
@@ -30,10 +30,10 @@ class Body:
 #O(n) = n^2, Euler integration
 #TODO: leapfrog, Barnes-Hut...
 class Simulator: 
-    def __init__(self, bodies, time, dx):
+    def __init__(self, bodies, time, dx, unit=86400):
         self.bodies = bodies
         self.time = int(time/dx)
-        self.dx = 86400*dx #n of seconds in a day, for easier input
+        self.dx = unit*dx #n of seconds in a day, for easier input
         self.pairs = list(combinations(self.bodies, 2))
 
     def calculateForces(self):
@@ -58,38 +58,64 @@ class Simulator:
             sxyz = (vxyz*self.dx)/2
         
             body.coordinates += body.velocity*self.dx + sxyz
-            body.velocity += vxyz
+            body.velocity += vxyz #TODO why not append coordinates here? MERGE updateFrame() and simulate()!
     
-    #TODO
-    #def run(self):   
+    #returns dictionary (JSON, anyone?)
+    def simulate(self):
+        sim = {k.name : [] for k in self.bodies}
+        for t in range(self.time):
+            self.updateFrame()
+
+            for body in self.bodies:
+                sim[body.name].append(list(body.coordinates)) #without list() all numbers are the same???
+        return sim
+
+
+def FastPlot(sim, ax1=0, ax2=1):
+    fig, ax = plt.subplots()
+
+    for body in sim:
+        xyz = np.asarray(sim[body])
+        x, y  = xyz[:,ax1], xyz[:,ax2]
+        ax.scatter(x, y, label=body)
+    plt.title("N body simulation")
+    plt.xlabel("x [m]")
+    plt.ylabel("y [m]")
+    ax.legend(loc='best')
+    plt.show()
+
+def LoadSimTask(file):
+    with open(file) as f:
+        data = json.load(f)
+    b = []
+    d = data["bodies"]
+    print(d, "\n")
+    for body in d:
+        print(body)
+        info = d[body]
+        b.append(Body(body, info["mass"], info["coordinates"], info["velocity"]))
+
+
+    time = data["time"]
+    factor = data["factor"]
+    dx = data["dx"]
+
+    return Simulator(b, time, dx, unit=factor)
+    
+
 
 if __name__ == "__main__":
+    """
     Earth = Body("Earth", 5.97219e24, [150000000000, 0, 0], [0, 30000, 0])
     Sun = Body("Sun", 1.9891e30, [0, 0, 0], [0, 0, 0])
 
-    time = int(input("T[days]: "))
+    print("*Default unit are in days")
+    time = int(input("Time: "))
+    dx = float(input("dx: "))
 
-    factor = float(input("dx[days]: "))
+    Cosmos = Simulator([Earth, Sun], time, dx)
+    """
 
-    x, y = [], []
-    x2, y2 = [], []
-
-    Cosmos = Simulator([Sun, Earth], time, factor)
-    print("Total number of frames to compute:", Cosmos.time)
-    for k in range(Cosmos.time):
-        Cosmos.updateFrame()
-        x.append(Earth.coordinates[0])
-        y.append(Earth.coordinates[1])
-        x2.append(Sun.coordinates[0])
-        y2.append(Sun.coordinates[1])
-
-    #plt.plot(list(range(test)), x)
-    #plt.plot(list(range(test)), y)
-    #print("---DONE---")
-    #print(len(list(range(test))))
-    #print(Earth)
-    #plt.show()
-
-    plt.scatter(x, y)
-    plt.scatter(x2, y2)
-    plt.show()
+    Cosmos = LoadSimTask("example.json")
+    c = Cosmos.simulate()
+    FastPlot(c)

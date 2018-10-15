@@ -1,0 +1,17 @@
+{
+    "bodies": {
+        "Earth": {
+            "mass": 5.97219e24,
+            "coordinates": [150000000000, 0, 0],
+            "velocity": [0, 30000, 0]
+        },
+        "Sun": {
+            "mass": 1.9891e30,
+            "coordinates": [0, 0, 0],
+            "velocity": [0, 0, 0]
+        }
+    },
+    "time": 365,
+    "factor": 86400,
+    "dx": 1
+}
