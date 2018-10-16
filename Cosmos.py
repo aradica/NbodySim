@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import combinations
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import json
 
 class Body:
@@ -71,7 +72,7 @@ class Simulator:
         return sim
 
 
-def FastPlot(sim, ax1=0, ax2=1):
+def FastPlot2D(sim, ax1=0, ax2=1):
     fig, ax = plt.subplots()
 
     for body in sim:
@@ -84,14 +85,56 @@ def FastPlot(sim, ax1=0, ax2=1):
     ax.legend(loc='best')
     plt.show()
 
+def FastPlot3D(sim, boundary, colors, pause=0.01):
+    frames = []
+    #testing
+    for body in sim:
+        xyz = np.asarray(sim[body])
+        x, y, z  = xyz[:,0], xyz[:,1], xyz[:,2]
+        frames.append([x, y, z])
+
+    frames = np.asarray(frames)
+    frames = frames.T
+    
+
+    #exit()
+
+    plt.ion()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    for t, frame in enumerate(frames):
+        ax.autoscale(False)
+        ax = plt.gca()
+        ax.set_xlim([-boundary, boundary])
+        ax.set_ylim([-boundary,boundary])
+        ax.set_zlim([-boundary,boundary])
+
+        #infefficient af!!!
+        """
+        for body in sim:
+            xyz = np.asarray(sim[body])
+            x, y, z  = xyz[:,0], xyz[:,1], xyz[:,2]
+            ax.scatter(x[t], y[t], z[t], label=body)
+        """
+
+        #more efficient!
+        ax.scatter(frame[0], frame[1], frame[2], alpha = 1, c=colors)
+
+        plt.title("N body simulation - frame {}".format(t))
+        plt.draw()
+        plt.pause(pause)
+        ax.cla()   
+
+
 def LoadSimTask(file):
     with open(file) as f:
         data = json.load(f)
     b = []
     d = data["bodies"]
-    print(d, "\n")
+    #print(d, "\n")
     for body in d:
-        print(body)
+        #print(body)
         info = d[body]
         b.append(Body(body, info["mass"], info["coordinates"], info["velocity"]))
 
@@ -118,4 +161,5 @@ if __name__ == "__main__":
 
     Cosmos = LoadSimTask("example.json")
     c = Cosmos.simulate()
-    FastPlot(c)
+    #FastPlot2D(c)
+    FastPlot3D(c, 300000000000, colors=[0, 1])
