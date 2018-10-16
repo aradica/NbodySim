@@ -2,6 +2,8 @@ import numpy as np
 from itertools import combinations
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import datetime
+import os
 import json
 
 class Body:
@@ -85,7 +87,8 @@ def FastPlot2D(sim, ax1=0, ax2=1):
     ax.legend(loc='best')
     plt.show()
 
-def FastPlot3D(sim, boundary, colors, pause=0.01):
+
+def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
     frames = []
     #testing
     for body in sim:
@@ -96,8 +99,10 @@ def FastPlot3D(sim, boundary, colors, pause=0.01):
     frames = np.asarray(frames)
     frames = frames.T
     
-
-    #exit()
+    now = datetime.datetime.now()
+    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    if save == 1:
+        os.makedirs("3d "+timestamp)
 
     plt.ion()
     fig = plt.figure()
@@ -106,23 +111,17 @@ def FastPlot3D(sim, boundary, colors, pause=0.01):
     for t, frame in enumerate(frames):
         ax.autoscale(False)
         ax = plt.gca()
-        ax.set_xlim([-boundary, boundary])
-        ax.set_ylim([-boundary,boundary])
-        ax.set_zlim([-boundary,boundary])
-
-        #infefficient af!!!
-        """
-        for body in sim:
-            xyz = np.asarray(sim[body])
-            x, y, z  = xyz[:,0], xyz[:,1], xyz[:,2]
-            ax.scatter(x[t], y[t], z[t], label=body)
-        """
+        ax.set_xlim(boundary[0])
+        ax.set_ylim(boundary[1])
+        ax.set_zlim(boundary[2])
 
         #more efficient!
         ax.scatter(frame[0], frame[1], frame[2], alpha = 1, c=colors)
 
-        plt.title("N body simulation - frame {}".format(t))
+        plt.title("N body simulation frame {}".format(t))
         plt.draw()
+        if save == 1:
+            plt.savefig("3d "+timestamp+"/"+str(t)+".png")
         plt.pause(pause)
         ax.cla()   
 
@@ -162,4 +161,5 @@ if __name__ == "__main__":
     Cosmos = LoadSimTask("example.json")
     c = Cosmos.simulate()
     #FastPlot2D(c)
-    FastPlot3D(c, 300000000000, colors=[0, 1])
+    box = [[-3e11, 3e11], [-3e11, 3e11], [-3e11, 3e11]]
+    FastPlot3D(c, box, colors=[0, 1 , 2, 5], save=1)

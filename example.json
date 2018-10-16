@@ -1,9 +1,19 @@
 {
     "bodies": {
+        "Venus": {
+            "mass": 4.8675E24,
+            "coordinates": [108208000000, 0, 0],
+            "velocity": [0, 35020, 0]
+        },
         "Earth": {
             "mass": 5.97219e24,
             "coordinates": [150000000000, 0, 0],
             "velocity": [0, 30000, 0]
+        },
+        "Mercury":{
+            "mass": 3.3011E23,
+            "coordinates": [57909050000, 0, 0],
+            "velocity": [0, 47362, 0]
         },
         "Sun": {
             "mass": 1.9891e30,
