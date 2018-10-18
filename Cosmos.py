@@ -40,7 +40,6 @@ class Simulator:
         self.pairs = list(combinations(self.bodies, 2))
 
     def calculateForces(self):
-
         for body in self.bodies:
             body.force *= 0 #set to zero
 
@@ -51,32 +50,28 @@ class Simulator:
             body1.force += F
             body2.force -= F 
 
-
-    #Add all forces and then move the bodies a little bit (errors don't cancel out - orbital drifts can and will occur!)
-    def updateFrame(self):
-        self.calculateForces()
-        for body in self.bodies:
-            axyz = body.force/body.mass
-            vxyz = axyz*self.dx
-            sxyz = (vxyz*self.dx)/2
-        
-            body.coordinates += body.velocity*self.dx + sxyz
-            body.velocity += vxyz #TODO why not append coordinates here? MERGE updateFrame() and simulate()!
     
     #returns dictionary (JSON, anyone?)
     def simulate(self):
         sim = {k.name : [] for k in self.bodies}
         for t in range(self.time):
-            self.updateFrame()
+            self.calculateForces()
 
+            #Add all forces and then move the bodies a little bit (errors don't cancel out - orbital drifts can and will occur!)
             for body in self.bodies:
+                axyz = body.force/body.mass
+                vxyz = axyz*self.dx
+                sxyz = (vxyz*self.dx)/2
+            
+                body.coordinates += body.velocity*self.dx + sxyz
+                body.velocity += vxyz #TODO why not append coordinates here? MERGE updateFrame() and simulate()!
                 sim[body.name].append(list(body.coordinates)) #without list() all numbers are the same???
+    
         return sim
 
 
 def FastPlot2D(sim, ax1=0, ax2=1):
     fig, ax = plt.subplots()
-
     for body in sim:
         xyz = np.asarray(sim[body])
         x, y  = xyz[:,ax1], xyz[:,ax2]
@@ -90,17 +85,15 @@ def FastPlot2D(sim, ax1=0, ax2=1):
 
 def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
     frames = []
-    #testing
     for body in sim:
         xyz = np.asarray(sim[body])
         x, y, z  = xyz[:,0], xyz[:,1], xyz[:,2]
         frames.append([x, y, z])
 
-    frames = np.asarray(frames)
-    frames = frames.T
-    
-    now = datetime.datetime.now()
-    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    frames = np.asarray(frames).T
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     if save == 1:
         os.makedirs("3d "+timestamp)
 
@@ -108,20 +101,23 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
+    bx, by, bz = boundary[0], boundary[1], boundary[2]
     for t, frame in enumerate(frames):
-        ax.autoscale(False)
+        #ax.autoscale(False)
+        #                                    check this first if errors start to occur!                            
+        f1, f2, f3 = frame
         ax = plt.gca()
-        ax.set_xlim(boundary[0])
-        ax.set_ylim(boundary[1])
-        ax.set_zlim(boundary[2])
+        ax.set_xlim(bx)
+        ax.set_ylim(by)
+        ax.set_zlim(bz)
 
-        #more efficient!
-        ax.scatter(frame[0], frame[1], frame[2], alpha = 1, c=colors)
-
-        plt.title("N body simulation frame {}".format(t))
+        ax.scatter(f1, f2, f3, alpha = 1, c=colors)
+        plt.title("Frame {}".format(t))
+        
         plt.draw()
         if save == 1:
             plt.savefig("3d "+timestamp+"/"+str(t)+".png")
+
         plt.pause(pause)
         ax.cla()   
 
@@ -129,20 +125,9 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
 def LoadSimTask(file):
     with open(file) as f:
         data = json.load(f)
-    b = []
     d = data["bodies"]
-    #print(d, "\n")
-    for body in d:
-        #print(body)
-        info = d[body]
-        b.append(Body(body, info["mass"], info["coordinates"], info["velocity"]))
-
-
-    time = data["time"]
-    factor = data["factor"]
-    dx = data["dx"]
-
-    return Simulator(b, time, dx, unit=factor)
+    b = [Body(body, d[body]["mass"], d[body]["coordinates"], d[body]["velocity"]) for body in d]
+    return Simulator(b, data["time"], data["dx"], unit=data["factor"])
     
 
 
@@ -162,4 +147,4 @@ if __name__ == "__main__":
     c = Cosmos.simulate()
     #FastPlot2D(c)
     box = [[-3e11, 3e11], [-3e11, 3e11], [-3e11, 3e11]]
-    FastPlot3D(c, box, colors=[0, 1 , 2, 5], save=1)
+    FastPlot3D(c, box, colors=[0, 1 , 2, 5], save=0)
