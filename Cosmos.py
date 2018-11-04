@@ -92,7 +92,7 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
 
     frames = np.asarray(frames).T
 
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
     if save == 1:
         os.makedirs("3d "+timestamp)
@@ -147,4 +147,4 @@ if __name__ == "__main__":
     c = Cosmos.simulate()
     #FastPlot2D(c)
     box = [[-3e11, 3e11], [-3e11, 3e11], [-3e11, 3e11]]
-    FastPlot3D(c, box, colors=[0, 1 , 2, 5], save=0)
+    FastPlot3D(c, box, colors=[0, 1 , 2, 5], save=1)
