@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import combinations
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 import datetime
 import os
 import json
@@ -105,12 +106,14 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
 
     plt.ion()
     fig = plt.figure()
+    #Axes3d
     ax = fig.add_subplot(111, projection='3d')
 
     bx, by, bz = boundary[0], boundary[1], boundary[2]
     for t, frame in enumerate(frames):
         #ax.autoscale(False)
-        #                                    check this first if errors start to occur!                            
+
+        # check this first if errors start to occur!                   
         f1, f2, f3 = frame
         ax = plt.gca()
         ax.set_xlim(bx)
