@@ -1,14 +1,12 @@
 import numpy as np
 from itertools import combinations
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import datetime
 import os
 import json
 from tqdm import tqdm
 
 class Body:
-
     def __init__(self, name, mass, coordinates, velocity):
         self.name = name
         self.mass = mass
@@ -21,28 +19,19 @@ class Body:
         return "Body '{}' at {} going {} m/s.".format(self.name, self.coordinates, self.velocity)
 
     def Fg(self, other):
-        """
-        Returns the gravitational attraction between two Body objects
-        """
+        """Returns the gravitational attraction between two Body objects"""
         #F = G*m1*m2*/d^2
         return (6.674e-11 * self.mass * other.mass)/np.sum(np.square(self.coordinates - other.coordinates))
 
     def Distance(self, other):
-        """
-        Returns the Eucledian distance between two Body objects
-        """
+        """Returns the Eucledian distance between two Body objects"""
         return np.sqrt(np.sum(np.square(self.coordinates - other.coordinates)))
 
     def unitVector(self, other):
-        """
-        Returns the unit vector aligned and oriented towards the other Body
-        """
+        """Returns the unit vector aligned and oriented towards the other Body"""
         return (other.coordinates - self.coordinates)/self.Distance(other)
 
-
-#O(n) = n^2, Euler integration
-#TODO: leapfrog, Barnes-Hut...
-class Simulator: 
+class Simulator:
     def __init__(self, bodies, time, dx, unit=86400):
         self.bodies = bodies
         self.time = int(time/dx)
@@ -50,9 +39,7 @@ class Simulator:
         self.pairs = list(combinations(self.bodies, 2))
 
     def calculateForces(self):
-        """
-        Iterate through all pairs and calculate attraction
-        """
+        """Iterate through all pairs and calculate attraction"""
         for body in self.bodies:
             body.force *= 0 #set to zero
 
@@ -61,14 +48,11 @@ class Simulator:
 
             #Newton's Third Law
             body1.force += F
-            body2.force -= F 
+            body2.force -= F
 
-    
     #returns dictionary (JSON, anyone?)
     def simulate(self):
-        """
-        Run the whole simulation
-        """
+        """Run the whole simulation"""
         sim = {k.name : [] for k in self.bodies}
         for t in tqdm(range(self.time)):
             self.calculateForces()
@@ -85,7 +69,6 @@ class Simulator:
     
         return sim
 
-
 def FastPlot2D(sim, ax1=0, ax2=1):
     fig, ax = plt.subplots()
     for body in sim:
@@ -97,7 +80,6 @@ def FastPlot2D(sim, ax1=0, ax2=1):
     plt.ylabel("y [m]")
     ax.legend(loc='best')
     plt.show()
-
 
 def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
     """
@@ -143,33 +125,17 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
             plt.savefig("3d "+timestamp+"/"+str(t)+".png")
 
         plt.pause(pause)
-        ax.cla()   
-
+        ax.cla()
 
 def LoadSimTask(file):
-    """
-    Load a .json file with initial parameters & return a configured Simulator object ready to run
-    """
+    """Load a .json file with initial parameters & return a configured Simulator object ready to run"""
     with open(file) as f:
         data = json.load(f)
     d = data["bodies"]
     b = [Body(body, d[body]["mass"], d[body]["coordinates"], d[body]["velocity"]) for body in d]
     return Simulator(b, data["time"], data["dx"], unit=data["factor"])
     
-
-
 if __name__ == "__main__":
-    """
-    Earth = Body("Earth", 5.97219e24, [150000000000, 0, 0], [0, 30000, 0])
-    Sun = Body("Sun", 1.9891e30, [0, 0, 0], [0, 0, 0])
-
-    print("*Default unit are in days")
-    time = int(input("Time: "))
-    dx = float(input("dx: "))
-
-    Cosmos = Simulator([Earth, Sun], time, dx)
-    """
-
     Cosmos = LoadSimTask("example.json")
     c = Cosmos.simulate()
     #FastPlot2D(c)
