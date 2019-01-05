@@ -113,7 +113,7 @@ def FastPlot3D(sim, boundary, colors, save=0, pause=0.01):
     for t, frame in enumerate(frames):
         #ax.autoscale(False)
 
-        # check this first if errors start to occur!                   
+        # check this first if errors start to occur!
         f1, f2, f3 = frame
         ax = plt.gca()
         ax.set_xlim(bx)
@@ -137,7 +137,7 @@ def LoadSimTask(file):
     d = data["bodies"]
     b = [Body(body, d[body]["mass"], d[body]["coordinates"], d[body]["velocity"]) for body in d]
     return Simulator(b, data["time"], data["dx"], unit=data["factor"])
-    
+
 if __name__ == "__main__":
     Cosmos = LoadSimTask("example.json")
     c = Cosmos.simulate()
